@@ -1,5 +1,25 @@
-1. git clone https://github.com/softxoxo/test_5.git
+## Установка и запуск
 
-2. cd test_5
+1. Клонируйте репозиторий:
+```
+git clone https://github.com/softxoxo/test_5.git
+```
+2. Перейдите в директорию проекта:
+```
+cd test_5
+```
+4. Установите зависимости:
+```
+npm install
+```
+4. Запустите калькулятор:
+```
+npm run start
+```
 
-3. npm run start
+## Тестирование
+
+Для запуска тестов выполните команду:
+```
+npm test
+```
