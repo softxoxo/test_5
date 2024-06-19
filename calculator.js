@@ -1,6 +1,14 @@
+const Parser = require('./parser');
+
 class Calculator {
-	constructor(parser) {
-	  this.parser = parser;
+	constructor() {
+	  this.parser = new Parser();
+	  this.operatorFunctions = {
+		"+": (a, b) => a + b,
+		"-": (a, b) => a - b,
+		"*": (a, b) => a * b,
+		"/": (a, b) => a / b,
+	  };
 	}
   
 	calculate(expression) {
@@ -18,11 +26,16 @@ class Calculator {
 	}
   
 	performOperation(operator, operands) {
-	  const operationFn = this.parser.getOperationFunction(operator);
+	  const operationFn = this.operatorFunctions[operator];
 	  if (!operationFn) {
 		throw new Error(`Unsupported operator: ${operator}`);
 	  }
 	  return operationFn(...operands);
+	}
+  
+	addOperator(operator, operationFn) {
+	  this.operatorFunctions[operator] = operationFn;
+	  this.parser.precedence[operator] = Object.keys(this.parser.precedence).length + 1;
 	}
   }
   

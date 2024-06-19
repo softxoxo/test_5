@@ -1,11 +1,5 @@
 class Parser {
   constructor() {
-    this.operatorFunctions = {
-      "+": (a, b) => a + b,
-      "-": (a, b) => a - b,
-      "*": (a, b) => a * b,
-      "/": (a, b) => a / b,
-    };
     this.precedence = {
       "+": 1,
       "-": 1,
@@ -19,28 +13,57 @@ class Parser {
     return this.parseExpression(tokens);
   }
 
+
   tokenize(expression) {
     const tokens = [];
     let currentToken = "";
-
-    for (const char of expression) {
-      if (this.isOperator(char) || this.isParenthesis(char)) {
+    let isNegative = false;
+  
+    for (let i = 0; i < expression.length; i++) {
+      const char = expression[i];
+  
+      if (this.isOperator(char)) {
         if (currentToken !== "") {
-          tokens.push(currentToken);
+          tokens.push(isNegative ? `-${currentToken}` : currentToken);
           currentToken = "";
+          isNegative = false;
         }
+  
+        if ((char === "+" || char === "-") && tokens.length === 0) {
+          tokens.push("0");
+        }
+  
+        if (char === "-" && (this.isOperator(tokens[tokens.length - 1]) || tokens[tokens.length - 1] === "(")) {
+          isNegative = true;
+          continue;
+        }
+  
+        tokens.push(char);
+      } else if (this.isParenthesis(char)) {
+        if (currentToken !== "") {
+          tokens.push(isNegative ? `-${currentToken}` : currentToken);
+          currentToken = "";
+          isNegative = false;
+        }
+  
         tokens.push(char);
       } else if (this.isDigit(char) || char === ".") {
         currentToken += char;
-      } else if (char !== " ") {
+      } else if (char === " ") {
+        if (currentToken !== "") {
+          tokens.push(isNegative ? `-${currentToken}` : currentToken);
+          currentToken = "";
+          isNegative = false;
+        }
+      } else {
         throw new Error(`Invalid character: ${char}`);
       }
     }
-
+  
     if (currentToken !== "") {
-      tokens.push(currentToken);
+      tokens.push(isNegative ? `-${currentToken}` : currentToken);
     }
-
+  
     return tokens;
   }
 
@@ -48,7 +71,9 @@ class Parser {
     const operatorStack = [];
     const operandStack = [];
 
-    for (const token of tokens) {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
       if (this.isOperator(token)) {
         while (
           operatorStack.length > 0 &&
@@ -71,6 +96,11 @@ class Parser {
           operandStack.push([operator, left, right]);
         }
         operatorStack.pop();
+
+        if (i > 0 && tokens[i - 1] === "-") {
+          const negatedExpression = operandStack.pop();
+          operandStack.push(["unary-", negatedExpression]);
+        }
       } else {
         operandStack.push(token);
       }
@@ -85,9 +115,8 @@ class Parser {
 
     return operandStack[0];
   }
-
   isOperator(char) {
-    return char in this.operatorFunctions;
+    return char in this.precedence;
   }
 
   isParenthesis(char) {
@@ -101,15 +130,6 @@ class Parser {
   getPrecedence(operator) {
     return this.precedence[operator] || 0;
   }
-
-  getOperationFunction(operator) {
-    return this.operatorFunctions[operator];
-  }
-
-  addOperator(operator, operationFn, precedence) {
-    this.operatorFunctions[operator] = operationFn;
-    this.precedence[operator] = precedence;
-  }
 }
 
-module.exports = Parser;
+module.exports = Parser; 
